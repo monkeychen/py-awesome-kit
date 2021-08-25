@@ -1,7 +1,7 @@
 import sys
 
 from awekit import base
-from awekit.base.util.database import Database
+from awekit.base.db.database import Database
 from awekit.base.util.sshclient import SshClient
 
 

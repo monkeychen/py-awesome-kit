@@ -1,6 +1,6 @@
 import os
 from awekit import base
-from awekit.base.util.database import Database
+from awekit.base.db.database import Database
 
 
 class SqlServer(Database):

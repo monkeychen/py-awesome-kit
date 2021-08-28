@@ -6,7 +6,7 @@ from awekit.base.db.database import Database
 
 class Aster(Database):
 
-    def __init__(self, host, dbname, user, password, port=2406, loader_host="localhost", extra_params: dict = None):
+    def __init__(self, host, user, password, dbname="beehive", port=2406, loader_host="localhost", extra_params: dict = None):
         super().__init__(extra_params=extra_params)
         if base.is_windows():
             raise Exception("Not support Windows platform!")
@@ -91,5 +91,5 @@ class Aster(Database):
 
 
 if __name__ == "__main__":
-    aster = Aster()
+    aster = Aster(host="localhost", user="admin", password="******")
     aster.show_conn_info()

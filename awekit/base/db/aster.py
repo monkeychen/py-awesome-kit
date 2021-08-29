@@ -6,9 +6,9 @@ from awekit.base.db.database import Database
 
 class Aster(Database):
 
-    def __init__(self, host, user, password, dbname="beehive", port=2406, loader_host="localhost", extra_params: dict = None):
+    def __init__(self, host, user, password, dbname="beehive", port=2406, loader_host="localhost", extra_params: dict = None, check_os=True):
         super().__init__(extra_params=extra_params)
-        if base.is_windows():
+        if check_os and base.is_windows():
             raise Exception("Not support Windows platform!")
         self.host = host
         self.loader_host = loader_host
@@ -16,13 +16,13 @@ class Aster(Database):
         self.dbname = dbname
         self.user = user
         self.password = password
-        self.connect_info = f"' -h {self.host} -p {self.port} -d {self.dbname} -U {self.user} -w {self.password} '"
+        self.connect_info = f" -h {self.host} -p {self.port} -d {self.dbname} -U {self.user} -w {self.password} "
 
     def show_conn_info(self):
         print(self.connect_info)
 
     def get_client_bin_dir(self):
-        bin_dir_path = "/env/aster/bin"
+        bin_dir_path = "/wg_cmcc/env/aster/bin"
         if (self.extra_params is not None) and ("client_bin_dir_path" in self.extra_params):
             bin_dir_path = self.extra_params["client_bin_dir_path"]
         return bin_dir_path
@@ -52,7 +52,7 @@ class Aster(Database):
         sql_cmd = f"{self.get_client_bin_dir()}/act {self.connect_info} {cmd_content} {output_options} "
         return self.execute_cmd(sql_cmd, dt_flag=dt_flag, encoding=encoding)
 
-    def import_table(self, local_csv_file_path: str, tb_name: str, schema: str, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
+    def import_table(self, local_csv_file_path, tb_name, schema: str, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
         import_success = True
         try:
             sql_cmd = f"{self.get_client_bin_dir()}/ncluster_loader {self.connect_info} -f -l {self.loader_host} -c " \
@@ -86,10 +86,19 @@ class Aster(Database):
         except Exception as e:
             print(f"Fail to export data from query[{export_sql}], the error is {e}!")
         finally:
-            self.execute_cmd(f"drop table if exists {schema}.{tmp_tb_name}", encoding=encoding)
+            drop_sql = f"drop table if exists {schema}.{tmp_tb_name}"
+            sql_cmd = f"{self.get_client_bin_dir()}/act {self.connect_info} -c \"{drop_sql}\" "
+            self.execute_cmd(sql_cmd, encoding=encoding)
         return local_file_path
 
+    def add_partition(self, tb_name, date_id, schema: str):
+        add_sql = f"alter table {schema}.{tb_name} add partition p{date_id} (values({date_id}))"
+        self.sqlcmd(add_sql)
+
+    def drop_partition(self, tb_name, date_id, schema: str):
+        drop_sql = f"alter table {schema}.{tb_name} drop partition (p{date_id})"
+        self.sqlcmd(drop_sql)
 
 if __name__ == "__main__":
-    aster = Aster(host="localhost", user="admin", password="******")
+    aster = Aster(host="localhost", user="user", password="******")
     aster.show_conn_info()

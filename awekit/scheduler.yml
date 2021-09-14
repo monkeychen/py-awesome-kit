@@ -1,0 +1,36 @@
+version: v0.0.1
+datasources:
+  - name: aster01
+    type: aster
+    class: awekit.base.db.aster.Aster
+    host: localhost
+    port: 2406
+    dbname: beehive
+    user: admin
+    password: gAAAAABhQJTyLsSZ9DNO5PRPNVxFowDojYKQEcTsX0QhVJ1XPwNgPMTRa7hs8PZvnXbMcwp_Zw41h7Bvwl5SSCz0a81517Di8g==
+  - name: sqlserver_01
+    type: sqlserver
+    class: awekit.base.db.sqlserver.SqlServer
+    host: localhost
+    port: 1433
+    dbname: jzxn_value
+    user: sa
+    password: gAAAAABhQJS_KLdgIy_UJCuLdsUlpo-S6HVV3X8eWaAK2gLrbapC25_hzr_hMAqE5eYhStdhTn2q3Luq97dkpWsDBABkICx0XQ==
+
+jobs:
+  - name: sync_bd_scene_conf_to_aster
+    type: exchange
+    cron: 30 20 8 * * *
+    src_ds:
+      name: sqlserver_01
+      dbname: null # 未提供则使用数据源中配置的dbname
+      tb_name: null # tb_name与sql二者选一填写
+      sql: select * from tb_001 where date_id = {date_id} and city_name = 'FZ'
+    dest_ds:
+      name: aster01
+      tb_name: d_cza_satisfy_scene
+  - name: task_scanner
+    type: custom
+    cron: "10 0/2 * * * *"
+    class: awekit.base.scheduler.TaskScanner
+    method: scan

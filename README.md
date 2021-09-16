@@ -132,4 +132,21 @@ source /env/greenplum/loaders/greenplum_loaders_path.sh
 
 ```
 
+#### 2. 未设置`PYTHONPATH`环境变量导致的问题
+如果系统中未设置`PYTHONPATH`环境变量，将导致`python some_module.py` 启动时会无法当前目录添加到`sys.path`中，
+最终导致`import`项目中其他目录下的模块报错：未发现指定模块。
+
+解决办法如下：
+```shell
+# vim ~/.bashrc  或 vim ~/.bash_profile 或 sudo vim /etc/profile
+export PYTHONPATH=":$PYTHONPATH"
+```
+PS：就算已设置`PYTHONPATH`，如果在crontab中通过shell调用python脚本，仍然会发现当前目录未添加进`sys.path`中，导致模块加载报错。
+
+原因为：crontab启动时是不会执行`~/.bashrc 或 ~/.bash_profile 或 /etc/profile`三个文件中的任何一个文件的，
+这将导致crontab的执行上下文中并不存在中`PYTHONPATH`，即本质原因仍然是`PYTHONPATH`未设置问题。
+解决办法多种：
+1. 在crontab执行的shell中设置`PYTHONPATH`。
+2. 修改crontab的全局配置文件（不建议）。
+
 

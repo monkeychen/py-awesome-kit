@@ -52,7 +52,7 @@ class Aster(Database):
         sql_cmd = f"{self.get_client_bin_dir()}/act {self.connect_info} {cmd_content} {output_options} "
         return self.execute_cmd(sql_cmd, dt_flag=dt_flag, encoding=encoding)
 
-    def import_table(self, local_csv_file_path, tb_name, schema: str, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
+    def import_table(self, tb_name: str, local_csv_file_path: str, schema: str, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
         import_success = True
         try:
             sql_cmd = f"{self.get_client_bin_dir()}/ncluster_loader {self.connect_info} -f -l {self.loader_host} -c " \
@@ -63,7 +63,7 @@ class Aster(Database):
             import_success = False
         return import_success
 
-    def export_table(self, local_out_dir_path: str, tb_name: str, schema: str, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
+    def export_table(self, tb_name: str, local_out_dir_path: str, schema: str, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
         dt_flag = self.get_timestamp()
         csv_file_name = f"{tb_name}_{dt_flag}.csv"
         if not os.path.exists(local_out_dir_path):
@@ -74,7 +74,7 @@ class Aster(Database):
         self.execute_cmd(sql_cmd, dt_flag=dt_flag, encoding=encoding)
         return local_file_path
 
-    def export_query(self, local_out_dir_path: str, export_sql: str, schema: str, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
+    def export_query(self, export_sql: str, local_out_dir_path: str, schema: str, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
         dt_flag = self.get_timestamp()
         tmp_tb_name = f"f_{self.USER_NAME}_tmp_tb_for_export_{dt_flag}"
         tmp_sql = f"create fact table {schema}.{tmp_tb_name} as {export_sql}"
@@ -82,7 +82,7 @@ class Aster(Database):
         local_file_path = None
         try:
             self.execute_cmd(sql_cmd, dt_flag=dt_flag, encoding=encoding)
-            local_file_path = self.export_table(local_out_dir_path, tb_name=tmp_tb_name, schema=schema, encoding=encoding, delimiter=delimiter)
+            local_file_path = self.export_table(tb_name=tmp_tb_name, local_out_dir_path=local_out_dir_path, schema=schema, encoding=encoding, delimiter=delimiter)
         except Exception as e:
             print(f"Fail to export data from query[{export_sql}], the error is {e}!")
         finally:
@@ -98,6 +98,7 @@ class Aster(Database):
     def drop_partition(self, tb_name, date_id, schema: str):
         drop_sql = f"alter table {schema}.{tb_name} drop partition (p{date_id})"
         self.sqlcmd(drop_sql)
+
 
 if __name__ == "__main__":
     aster = Aster(host="localhost", user="user", password="******")

@@ -5,6 +5,7 @@ from datetime import datetime
 
 UTF8 = "UTF-8"
 GBK = "GBK"
+DEF_DATE_FMT = "%Y-%m-%d %H:%M:%S"
 
 
 def is_windows():
@@ -19,8 +20,8 @@ def is_macos():
     return platform.system() == "Darwin"
 
 
-def get_timestamp():
-    return datetime.now().strftime("%Y%m%d%H%M%S")
+def get_timestamp(fmt="%Y%m%d%H%M%S"):
+    return datetime.now().strftime(fmt)
 
 
 def method_time_elapsed(method):

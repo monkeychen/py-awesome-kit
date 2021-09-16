@@ -1,5 +1,6 @@
 import time
 import datetime
+from dateutil import relativedelta
 
 FMT_DEFAULT = "%Y-%m-%d %H:%M:%S"
 FMT_Ymd = "%Y%m%d"
@@ -49,4 +50,14 @@ def time_to_datetime(tm):
 
 def timestamp_to_str(ts, fmt=FMT_DEFAULT):
     return datetime_to_str(timestamp_to_datetime(ts), fmt)
+
+
+def get_ago_date_id(date_id: str, ago: int, fmt=FMT_Ymd) -> str:
+    ago_dt = str_to_datetime(date_id, fmt) - relativedelta.relativedelta(days=ago)
+    return datetime_to_str(ago_dt, fmt)
+
+
+def get_ahead_date_id(date_id: str, ahead: int, fmt=FMT_Ymd) -> str:
+    ahead_dt = str_to_datetime(date_id, fmt) + relativedelta.relativedelta(days=ahead)
+    return datetime_to_str(ahead_dt, fmt)
 

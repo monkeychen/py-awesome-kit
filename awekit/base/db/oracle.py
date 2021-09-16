@@ -47,12 +47,14 @@ class Oracle(Database):
     def import_table(self, tb_name, in_file_path, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
         raise Exception("Not support yet!!!")
 
-    def export_table(self, tb_name, out_file_path, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
-        stmt = f"select * from {tb_name}"
-        return self.sqlcmd_stmt(stmt, out_file_path=out_file_path, show_header=False, encoding=encoding, delimiter=delimiter)
+    def export_table(self, tb_name, out_file_path, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR, where_clause=" 1 = 1 "):
+        stmt = f"select * from {tb_name} where {where_clause}"
+        self.sqlcmd_stmt(stmt, out_file_path=out_file_path, show_header=False, encoding=encoding, delimiter=delimiter)
+        return out_file_path
 
     def export_query(self, stmt, out_file_path, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
-        return self.sqlcmd_stmt(stmt, out_file_path=out_file_path, show_header=False, encoding=encoding, delimiter=delimiter)
+        self.sqlcmd_stmt(stmt, out_file_path=out_file_path, show_header=False, encoding=encoding, delimiter=delimiter)
+        return out_file_path
 
 
 if __name__ == "__main__":

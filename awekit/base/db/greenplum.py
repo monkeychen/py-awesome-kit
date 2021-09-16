@@ -61,7 +61,7 @@ class Greenplum(Database):
             sql_cmd = f"{self.get_client_bin_dir()}/psql {cmd_content} {output_options} {self.connect_info} "
         return self.execute_cmd(sql_cmd, dt_flag=dt_flag, encoding=encoding)
 
-    def import_table(self, local_csv_file_path, tb_name, schema=None, where_clause=" 1 = 1 ",
+    def import_table(self, tb_name, local_csv_file_path, schema=None, where_clause=" 1 = 1 ",
                      gpfdist_url=None, gpfdist_dir_path=None,
                      jump_host=None, jump_port=22, jump_user=None, jump_pwd=None,
                      encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
@@ -104,7 +104,7 @@ class Greenplum(Database):
             upload_success = False
         return upload_success
 
-    def export_table(self, local_out_dir_path: str, tb_name: str, schema=None, where_clause=" 1 = 1 ",
+    def export_table(self, tb_name: str, local_out_dir_path: str, schema=None, where_clause=" 1 = 1 ",
                      gpfdist_url=None, gpfdist_dir_path=None,
                      jump_host=None, jump_port=22, jump_user=None, jump_pwd=None,
                      encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):

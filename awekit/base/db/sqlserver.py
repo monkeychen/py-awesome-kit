@@ -50,17 +50,20 @@ class SqlServer(Database):
     def import_table(self, tb_name, in_file_path, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
         delimiter = self.wrap_param(delimiter)
         mssql_cmd = f"{self.get_bin_dir()}/bcp {tb_name} in {in_file_path} {self.connect_info} -c -t {delimiter} "
-        return self.execute_cmd(mssql_cmd, encoding=encoding)
+        self.execute_cmd(mssql_cmd, encoding=encoding)
+        return True
 
     def export_table(self, tb_name, out_file_path, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
         delimiter = self.wrap_param(delimiter)
         mssql_cmd = f"{self.get_bin_dir()}/bcp {tb_name} out {out_file_path} {self.connect_info} -c -t {delimiter} "
-        return self.execute_cmd(mssql_cmd, encoding=encoding)
+        self.execute_cmd(mssql_cmd, encoding=encoding)
+        return out_file_path
 
     def export_query(self, stmt, out_file_path, encoding=base.UTF8, delimiter=Database.COL_SEPARATOR):
         delimiter = self.wrap_param(delimiter)
         mssql_cmd = f"{self.get_bin_dir()}/bcp \"{stmt}\" queryout {out_file_path} {self.connect_info} -c -t {delimiter} "
-        return self.execute_cmd(mssql_cmd, encoding=encoding)
+        self.execute_cmd(mssql_cmd, encoding=encoding)
+        return out_file_path
 
 
 if __name__ == "__main__":

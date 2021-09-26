@@ -39,8 +39,11 @@ class SshClient(object):
         if self.sftp_client is not None:
             self.sftp_client.close()
 
-    def exec_command(self, cmd: str, timeout=None, encoding=base.UTF8):
-        _, stdout, stderr = self.ssh_client.exec_command(cmd, timeout=timeout)
+    def exec_command(self, cmd: str, timeout=None, encoding=base.UTF8, use_sudo=False):
+        stdin, stdout, stderr = self.ssh_client.exec_command(cmd, timeout=timeout)
+        if use_sudo:
+            stdin.write(self.password + '\n')
+            stdin.flush()
         if stdout is not None:
             print(stdout.read().decode(encoding=encoding))
         elif stderr is not None:

@@ -40,7 +40,7 @@ class SshClient(object):
             self.sftp_client.close()
 
     def exec_command(self, cmd: str, timeout=None, encoding=base.UTF8, use_sudo=False):
-        stdin, stdout, stderr = self.ssh_client.exec_command(cmd, timeout=timeout)
+        stdin, stdout, stderr = self.ssh_client.exec_command(cmd, timeout=timeout, get_pty=use_sudo)
         if use_sudo:
             stdin.write(self.password + '\n')
             stdin.flush()

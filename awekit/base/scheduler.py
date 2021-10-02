@@ -22,17 +22,32 @@ class SyncDsDescr(object):
 
     def __init__(self, ds_dict, sync_ds_conf: dict, kwargs: dict = None):
         ds = ds_dict[sync_ds_conf['name']]
+        self.ds_dict = ds_dict
+        self.sync_ds_conf = sync_ds_conf
         self.ds_type = ds['type']
         self.ds_client = ds['client']
         self.kwargs = kwargs
-        if self.kwargs.get('period_type') == 'day':
-            today_id = datetimeutils.datetime_to_str(datetime.today(), datetimeutils.FMT_Ymd)
+        self.tbname = None
+        self.sql = None
+        self.before = None
+        self.after = None
+
+    def prepare_stmts(self):
+        period_type = self.kwargs.get('period_type')
+        today_id = datetimeutils.datetime_to_str(datetime.today(), datetimeutils.FMT_Ymd)
+        if period_type == 'day':
             date_id = datetimeutils.get_ago_date_id(today_id, self.kwargs.get('period_value', 1))
             self.kwargs['date_id'] = date_id
-        self.tbname = self.fill_params(sync_ds_conf.get('tbname'), valid_file=False)
-        self.sql = self.fill_params(sync_ds_conf.get('sql'))
-        self.before = self.fill_params(sync_ds_conf.get('before'))
-        self.after = self.fill_params(sync_ds_conf.get('after'))
+        elif period_type == 'week':
+            begin_day = datetimeutils.get_ago_date_id(today_id, self.kwargs.get('period_value', 7))
+            self.kwargs['begin_day'] = begin_day
+            self.kwargs['end_day'] = today_id
+            self.kwargs['date_id'] = datetimeutils.get_ago_date_id(today_id, 1)
+
+        self.tbname = self.fill_params(self.sync_ds_conf.get('tbname'), valid_file=False)
+        self.sql = self.fill_params(self.sync_ds_conf.get('sql'))
+        self.before = self.fill_params(self.sync_ds_conf.get('before'))
+        self.after = self.fill_params(self.sync_ds_conf.get('after'))
 
     def fill_params(self, content_or_path: str, valid_file=True):
         if content_or_path is None:
@@ -56,7 +71,11 @@ class DataSyncJob(Runnable):
         self.kwargs = kwargs
 
     def run(self):
-        print(f"Job-{self} run at {base.get_timestamp()} ...")
+        print("===" * 60)
+        print(f"Job-{self} run at {base.get_timestamp(fmt=base.DEF_DATE_FMT)} ...")
+        self.src_ds.prepare_stmts()
+        self.dest_ds.prepare_stmts()
+
         tmp_path = f"{os.getcwd()}/temp"
         src_ds_type = self.src_ds.ds_type
         if src_ds_type == 'sqlserver':
@@ -85,6 +104,7 @@ class DataSyncJob(Runnable):
             dest_ds_client.sqlcmd_stmt(self.dest_ds.after)
         if os.path.exists(tmp_out_path):
             os.remove(tmp_out_path)
+        print("===" * 60)
         return
 
     def __str__(self):
@@ -109,8 +129,10 @@ class CustomJob(Runnable):
         self.method = getattr(self.cls_inst, job_conf['method'])
 
     def run(self):
-        print(f"Job-{self} run at {base.get_timestamp()} ...")
+        print("===" * 60)
+        print(f"Job-{self} run at {base.get_timestamp(fmt=base.DEF_DATE_FMT)} ...")
         self.method()
+        print("===" * 60)
 
     def __str__(self):
         return f"CustomJob[name={self.name}, class_path={self.cls_path}, cron={self.cron}, params={self.init_method_args}]"
@@ -125,7 +147,7 @@ class JobScanner(Runnable):
         self.scheduler = scheduler
 
     def scan(self):
-        print(f"Scan task at {base.get_timestamp()} ...")
+        print(f"Scan task at {base.get_timestamp(fmt=base.DEF_DATE_FMT)} ...")
         submitted_jobs = self.scheduler.get_jobs()
         for submitted_job in submitted_jobs:
             print(f"Submitted job => {submitted_job}")
@@ -137,7 +159,7 @@ class Scheduler(object):
         self.conf_file_path = conf_file_path
         self.crypt = Cryptography()
         if self.conf_file_path is None:
-            self.conf_file_path = f"{base_dir_path}/fmcckit/scheduler.yml"
+            self.conf_file_path = f"{base_dir_path}/awekit/scheduler.yml"
         self.scheduler = BlockingScheduler()
         self.ds_dict, self.jobs = self.parse_scheduler_yaml()
         self.batch_submit_job()
@@ -188,7 +210,8 @@ class Scheduler(object):
         for job in self.jobs:
             if job.__class__.__name__ == "CustomJob" and job.cls_inst.__class__.__name__ == "JobScanner":
                 getattr(job.cls_inst, "set_scheduler")(self.scheduler)
-            self.scheduler.add_job(job.run, 'cron', second=job.cron[0], minute=job.cron[1], hour=job.cron[2], day=job.cron[3], id=job.name, name=job.name)
+            self.scheduler.add_job(job.run, 'cron', second=job.cron[0], minute=job.cron[1], hour=job.cron[2], day=job.cron[3],
+                                   month=job.cron[4], day_of_week=job.cron[5], id=job.name, name=job.name)
             print(f"Success to submit job[{job}] at {base.get_timestamp()}!")
 
     def startup(self):

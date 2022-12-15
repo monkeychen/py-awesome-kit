@@ -1,0 +1,42 @@
+version: v0.0.1
+datasources:
+  - name: aster
+    type: aster
+    class: awekit.base.db.aster.Aster
+    host: localhost
+    port: 2406
+    dbname: db01
+    user: user01
+    password: gAAAAABhQJTyLsSZ9DNO5PRPNVxFowDojYKQEcTsX0QhVJ1XPwNgPMTRa7hs8PZvnXbMcwp_Zw41h7Bvwl5SSCz0a81517Di8g==
+  - name: sqlserver_01
+    type: sqlserver
+    class: awekit.base.db.sqlserver.SqlServer
+    host: localhost
+    port: 1433
+    dbname: db01
+    user: user01
+
+jobs:
+  - name: sync_bd_scene_conf_to_aster
+    type: DataSync
+    cron: 30 20 8 * * *
+    src_ds:
+      name: sqlserver_01
+      tbname: null # tb_name\query\sql_file三选一填写
+      sql: |
+        select
+          REGION as city_name, COUNTY as county_name, PK_ID as pk_id, COM_NO as com_no, COM_NAME as com_name,
+          SCENE_NAME as scene_name, TYPEID as type_id, KEYWORD_DESC as keywork_desc, PHYSICAL_ACCESS_POINT_NAME as physical_access_point_name
+        from q_irms_com_target
+    dest_ds:
+      name: aster
+      tbname: d_cza_satisfy_scene
+      before: truncate table d_cza_satisfy_scene
+      after: null
+    kwargs: {'period_type': 'day', 'period_value': 1} # dict类型，用于设置SQL语句中使用到的参数
+  - name: task_scanner
+    type: custom
+    cron: "30 30 0/2 * * *"
+    class: awekit.base.scheduler.JobScanner
+    kwargs: null # dict类型，用于设置class实例化时所使用的参数列表
+    method: scan

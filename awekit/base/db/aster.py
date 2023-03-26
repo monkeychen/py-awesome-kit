@@ -22,7 +22,7 @@ class Aster(Database):
         print(self.connect_info)
 
     def get_client_bin_dir(self):
-        bin_dir_path = "/wg_cmcc/env/aster/bin"
+        bin_dir_path = "/env/aster/bin"
         if (self.extra_params is not None) and ("client_bin_dir_path" in self.extra_params):
             bin_dir_path = self.extra_params["client_bin_dir_path"]
         return bin_dir_path

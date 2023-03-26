@@ -47,7 +47,7 @@ pip install dist/py-awesome-kit-<version>-py3-none-any.whl
 pip install -e .  # 或者 python setup.py develop
 
 # 如需卸载，使用如下命令：
-pip uninstall fmcc-awesome-kit
+pip uninstall py-awesome-kit
 ```
 
 ## 附录：Linux常用命令

@@ -4,11 +4,11 @@ import pymysql
 import pymysql.cursors
 import time
 
-work_dir = "/ndyd/apps/athena/etl/export"
+work_dir = "/apps/athena/etl/export"
 file_name_list = os.listdir(work_dir)
 
-session: pymysql.Connection = pymysql.connect(host="localhost", port=3306, user="root", password="Ndyd@2024",
-                                              database="athena", charset="UTF8MB4")
+session: pymysql.Connection = pymysql.connect(host="localhost", port=3306, user="root", password="Admin@2024",
+                                              database="db01", charset="UTF8MB4")
 session.autocommit(True)
 # load
 with session.cursor() as cursor:
